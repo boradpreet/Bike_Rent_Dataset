@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bike Rent Prediction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Ensure that html and body take full width and height */
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to right, #74ebd5, #acb6e5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Use full height of the viewport */
+        }
+        .container {
+            width: 100vw; /* Full viewport width */
+            max-width: 800px; /* Optional: Max width to prevent it from becoming too wide */
+            height: auto; /* Allow auto height */
+            padding: 30px; /* Padding around the container */
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center vertically */
+            overflow: auto; /* Allow scrolling if necessary */
+        }
+        h2 {
+            text-align: center;
+            color: #1abc9c; /* Changed color */
+            margin: 0 0 20px 0; /* No margin above, margin below */
+            font-size: 28px; /* Changed font size */
+            font-weight: 600; /* Changed font weight */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Added text shadow */
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input[type="text"], input[type="number"] {
+            width: calc(100% - 20px); /* Full width minus padding */
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box; /* Include padding and border in element's total width and height */
+            background-color: #f2f2f2;
+            color: #333;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus, input[type="number"]:focus {
+            border-color: #1abc9c;
+            outline: none;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* Three equal columns */
+            gap: 15px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #1abc9c;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #16a085;
+        }
+        .output {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 18px; /* Adjusted font size */
+            color: #333;
+            display: {% if pred %} block {% else %} none {% endif %};
+            padding: 15px; /* Padding inside the output box */
+            border: 2px solid #1abc9c; /* Border for the output box */
+            border-radius: 8px; /* Rounded corners */
+            background-color: rgba(240, 248, 255, 0.8); /* Light background for output box */
+        }
+        .output p {
+            font-weight: 600;
+            margin: 0; /* Remove default margin */
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px; /* Padding for smaller screens */
+            }
+            h2 {
+                font-size: 24px; /* Smaller font size for smaller screens */
+            }
+            button {
+                font-size: 16px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr; /* Single column on smaller screens */
+            }
+        }
+    </style>
+    <script>
+        function clearOutput() {
+            document.getElementById('output').style.display = 'none'; // Hide the output
+        }
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <h2>Bike Rent Prediction</h2>
+    <form action="/predict" method="POST" onsubmit="clearOutput()">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="season">Season (1 to 4):</label>
+                <input type="number" id="season" name="season" min="1" max="4" required>
+            </div>
+            <div class="form-group">
+                <label for="mnth">Month (1 to 12):</label>
+                <input type="number" id="mnth" name="mnth" min="1" max="12" required>
+            </div>
+            <div class="form-group">
+                <label for="holiday">Holiday (0 = No, 1 = Yes):</label>
+                <input type="number" id="holiday" name="holiday" min="0" max="1" required>
+            </div>
+            <div class="form-group">
+                <label for="weekday">Weekday (0 to 6):</label>
+                <input type="number" id="weekday" name="weekday" min="0" max="6" required>
+            </div>
+            <div class="form-group">
+                <label for="workingday">Working Day (0 = No, 1 = Yes):</label>
+                <input type="number" id="workingday" name="workingday" min="0" max="1" required>
+            </div>
+            <div class="form-group">
+                <label for="weathersit">Weather Situation (1 to 4):</label>
+                <input type="number" id="weathersit" name="weathersit" min="1" max="4" required>
+            </div>
+            <div class="form-group">
+                <label for="temp">Temperature (0 to 1):</label>
+                <input type="text" id="temp" name="temp" required>
+            </div>
+            <div class="form-group">
+                <label for="atemp">Feels Like Temperature (0 to 1):</label>
+                <input type="text" id="atemp" name="atemp" required>
+            </div>
+            <div class="form-group">
+                <label for="hum">Humidity (0 to 1):</label>
+                <input type="text" id="hum" name="hum" required>
+            </div>
+            <div class="form-group">
+                <label for="windspeed">Windspeed (0 to 1):</label>
+                <input type="text" id="windspeed" name="windspeed" required>
+            </div>
+            <div class="form-group">
+                <label for="casual">Casual Users:</label>
+                <input type="number" id="casual" name="casual" required>
+            </div>
+            <div class="form-group">
+                <label for="registered">Registered Users:</label>
+                <input type="number" id="registered" name="registered" required>
+            </div>
+            <div class="form-group">
+                <label for="Year">Year (0 for 2011, 1 for 2012):</label>
+                <input type="number" id="Year" name="Year" required>
+            </div>
+            <div class="form-group">
+                <label for="Day">Day of the Month (1 to 31):</label>
+                <input type="number" id="Day" name="Day" required>
+            </div>
+        </div>
+        <button type="submit">Predict</button>
+    </form>
+
+    <!-- Display the prediction result -->
+    <div class="output" id="output">
+        <p>{{ pred }}</p>
+    </div>
+</div>
+
+</body>
+</html>
